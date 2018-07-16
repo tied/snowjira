@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <element label="JIRA Settings" max_length="40" name="x_232048_jira_inte_jira_settings" type="collection">
+        <element label="JIRA Password" mandatory="true" max_length="255" name="jira_password" type="password2"/>
+        <element label="JIRA URL" mandatory="true" max_length="500" name="jira_url" type="string_full_utf8"/>
+        <element label="JIRA User" mandatory="true" max_length="200" name="jira_user" type="string_full_utf8"/>
+    </element>
+</database>

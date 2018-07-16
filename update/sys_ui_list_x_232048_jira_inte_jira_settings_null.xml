@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update>
+    <sys_ui_list parent="" relationship="" sys_domain="global" table="x_232048_jira_inte_jira_settings" version="2" view="">
+        <sys_ui_list_element action="INSERT_OR_UPDATE">
+            <average_value>false</average_value>
+            <element>jira_url</element>
+            <list_id display_value="x_232048_jira_inte_jira_settings" element="NULL" name="x_232048_jira_inte_jira_settings" parent="NULL" relationship="NULL" sys_domain="global" view="Default view">580a8dacdb431300996485184b961940</list_id>
+            <max_value>false</max_value>
+            <min_value>false</min_value>
+            <position>0</position>
+            <sum>false</sum>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2018-06-28 20:13:39</sys_created_on>
+            <sys_id>540a8dacdb431300996485184b961941</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2018-06-28 20:13:39</sys_updated_on>
+        </sys_ui_list_element>
+        <sys_ui_list action="INSERT_OR_UPDATE">
+            <average_value>false</average_value>
+            <element/>
+            <max_value>false</max_value>
+            <min_value>false</min_value>
+            <name>x_232048_jira_inte_jira_settings</name>
+            <parent/>
+            <position/>
+            <relationship/>
+            <sum>false</sum>
+            <sys_class_name>sys_ui_list</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2018-06-28 20:13:39</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>580a8dacdb431300996485184b961940</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>x_232048_jira_inte_jira_settings</sys_name>
+            <sys_package display_value="JIRA Integration" source="x_232048_jira_inte">4b8f5740db031300996485184b96199e</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="JIRA Integration">4b8f5740db031300996485184b96199e</sys_scope>
+            <sys_update_name>sys_ui_list_x_232048_jira_inte_jira_settings_null</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2018-06-28 20:13:39</sys_updated_on>
+            <sys_user/>
+            <view display_value="Default view" name="NULL">Default view</view>
+            <view_name/>
+        </sys_ui_list>
+    </sys_ui_list>
+</record_update>

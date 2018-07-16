@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_security_acl_role">
+    <sys_security_acl_role action="INSERT_OR_UPDATE">
+        <sys_class_name>sys_security_acl_role</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2018-06-27 18:11:47</sys_created_on>
+        <sys_id>1984ab0cdb031300996485184b96192b</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>x_232048_jira_inte_jira_settings.x_232048_jira_inte.user</sys_name>
+        <sys_package display_value="JIRA Integration" source="x_232048_jira_inte">4b8f5740db031300996485184b96199e</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="JIRA Integration">4b8f5740db031300996485184b96199e</sys_scope>
+        <sys_security_acl display_value="x_232048_jira_inte_jira_settings">dd84ab0cdb031300996485184b961928</sys_security_acl>
+        <sys_update_name>sys_security_acl_role_1984ab0cdb031300996485184b96192b</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2018-06-27 18:11:47</sys_updated_on>
+        <sys_user_role display_value="x_232048_jira_inte.user" name="x_232048_jira_inte.user">0f8fd308db031300996485184b96190d</sys_user_role>
+        <transaction_id/>
+    </sys_security_acl_role>
+</record_update>

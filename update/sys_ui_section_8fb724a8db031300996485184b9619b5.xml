@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update>
+    <sys_ui_section caption="JIRA Project" section_id="8fb724a8db031300996485184b9619b5" sys_domain="global" table="pm_project_task" version="3" view="planning_console">
+        <sys_ui_element action="INSERT_OR_UPDATE">
+            <element>x_232048_jira_inte_jira_project</element>
+            <position>0</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2018-06-28 17:43:56</sys_created_on>
+            <sys_id>d3b724a8db031300996485184b9619fe</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_ui_formatter/>
+            <sys_ui_section caption="JIRA Project" display_value="JIRA Project" name="pm_project_task" sys_domain="global" view="d38d80523713310033cb26877e41f1c2">8fb724a8db031300996485184b9619b5</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2018-06-28 17:43:56</sys_updated_on>
+            <sys_user/>
+            <type/>
+        </sys_ui_element>
+        <sys_ui_section action="INSERT_OR_UPDATE">
+            <caption>JIRA Project</caption>
+            <header>false</header>
+            <name>pm_project_task</name>
+            <roles/>
+            <sys_class_name>sys_ui_section</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2018-06-28 17:43:55</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>8fb724a8db031300996485184b9619b5</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>JIRA Project</sys_name>
+            <sys_overrides/>
+            <sys_package display_value="JIRA Integration" source="x_232048_jira_inte">4b8f5740db031300996485184b96199e</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="JIRA Integration">4b8f5740db031300996485184b96199e</sys_scope>
+            <sys_update_name>sys_ui_section_8fb724a8db031300996485184b9619b5</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2018-06-28 17:43:55</sys_updated_on>
+            <sys_user/>
+            <title>false</title>
+            <view display_value="Planning Console" name="planning_console">d38d80523713310033cb26877e41f1c2</view>
+            <view_name/>
+        </sys_ui_section>
+    </sys_ui_section>
+</record_update>

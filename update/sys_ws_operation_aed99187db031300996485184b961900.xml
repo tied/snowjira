@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_ws_operation">
+    <sys_ws_operation action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <consumes>application/json,application/xml,text/xml</consumes>
+        <consumes_customized>false</consumes_customized>
+        <default_operation_uri/>
+        <enforce_acl>cf9d01d3e73003009d6247e603f6a990</enforce_acl>
+        <http_method>POST</http_method>
+        <name>Issue Change</name>
+        <operation_script><![CDATA[(function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+
+	var requestBody = JSON.parse(request.body.dataString);
+	var res = null;	
+		
+	if ( requestBody.issue != null ) {
+		
+		// issue was sent
+		var issue = requestBody.issue;
+
+		// get project associated with issue
+		var projectPhaseId = null;
+		var project_phase = new GlideRecord('pm_project_task');
+		project_phase.addQuery("x_232048_jira_inte_jira_project", issue.fields.project.key);
+		project_phase.setLimit(1);
+		project_phase.query();
+		while(project_phase.next()) {
+			projectPhaseId = project_phase.getValue("sys_id");				
+		}	
+		if ( projectPhaseId == null ) {
+			// issue not in phase associated with jira project
+			return;
+		}
+
+		// check if issue is story or task to decide how to process
+		var issueType = issue.fields.issuetype.name.toString();
+		if ( issueType == "Story" ) {
+			res = processStory(issue,projectPhaseId);
+		}
+		else if ( issueType == "Sub-task" ) {
+			res = processSubtask(issue,projectPhaseId);
+		}
+		
+	} 
+	else if ( requestBody.worklog != null ) {
+	
+		// get jira settings from db
+		var jiraUrl = null;
+		var jiraUser = null;
+		var jiraPassword = null;
+		var settings = new GlideRecord('x_232048_jira_inte_jira_settings');
+		settings.setLimit(1);
+		settings.query();
+		while(settings.next()) {
+			jiraUrl = settings.getDisplayValue('jira_url');
+			jiraUser = settings.getDisplayValue('jira_user');
+			jiraPassword = settings.getElement("jira_password").getDecryptedValue();	
+		}
+		
+		// get issue detail from JIRA
+		var wsUrl = jiraUrl + "/rest/api/2/issue/" + requestBody.worklog.issueId;
+		var sm = new sn_ws.RESTMessageV2(); 
+		sm.setHttpMethod("get");
+		sm.setEndpoint(wsUrl);
+		sm.setBasicAuth(jiraUser,jiraPassword);
+		sm.setRequestHeader('Content-Type','application/json');
+		sm.setRequestHeader('Accept','application/json');
+		sm.setHttpTimeout(10000); 
+
+		response = sm.execute();		
+
+		var responseBody = response.haveError() ? response.getErrorMessage() : response.getBody();
+		var status = response.getStatusCode();
+		
+		var result = JSON.parse(responseBody);
+		
+		if ( result.fields != null ) {
+			// found issue process worklog entry
+			processWorklog(requestBody.worklog, result);
+		}
+		else {
+			// cannot find issue
+			gs.info("Failed to find issue for worklog entry: " + JSON.stringify(result) );
+		}
+		
+	}
+	
+	// -- process story change --
+	function processStory(issue,projectPhaseId) {
+	
+		var ret = "OK";
+		
+		try {
+			
+			// check for story in system
+			var storyId = null;
+			var state = null;
+			switch (issue.fields.status.name.toString()) {
+				case "To Do" :
+					state = "1";
+					break;
+				case "In Progress" :
+					state = "2";
+					break;
+				case "Done" :
+					state = "3";
+					break;
+			}
+
+			var story = new GlideRecord('rm_story');
+			story.addQuery("x_232048_jira_inte_jira_issue_key", issue.key.toString() );
+			story.setLimit(1);
+			story.query();
+			while(story.next()) {
+
+				// update the story
+				storyId = story.getValue("sys_id");		
+
+				if ( issue.fields.summary != null ) {
+					story.setValue("short_description", issue.fields.summary.toString() );
+				}
+				if ( issue.fields.description != null ) {
+					story.setValue("description", issue.fields.description.toString() );
+				}
+				if ( issue.fields.priority != null ) {
+					if ( issue.fields.priority.id != null ) {
+						story.setValue("priority", issue.fields.priority.id.toString() );
+					}
+				}
+				story.setValue("project_phase", projectPhaseId);			
+				if ( state != null ) {
+					story.setValue("state",state);
+				}
+
+				story.update();
+				
+			}	
+
+			if (storyId == null) {
+				
+				// check for duplicate
+				var dupStory = false;
+				var checkStory = new GlideRecord('rm_story');
+				checkStory.addQuery("short_description",issue.fields.summary.toString() );
+				checkStory.addQuery("project_phase", projectPhaseId);
+				checkStory.setLimit(1);
+				checkStory.query();			
+				while(checkStory.next()) {
+					dupStory = true;
+				}
+
+				if ( !dupStory ) {
+					// add new story 
+					var newStory = new GlideRecord('rm_story');
+					if ( issue.fields.summary != null ) {
+						newStory.setValue("short_description", issue.fields.summary.toString() );
+					}
+					if ( issue.fields.description != null ) {
+						newStory.setValue("description", issue.fields.description.toString() );
+					}
+					if ( issue.fields.priority != null ) {
+						if ( issue.fields.priority.id != null ) {
+							newStory.setValue("priority", issue.fields.priority.id.toString() );
+						}
+					}
+					newStory.setValue("project_phase", projectPhaseId);
+					newStory.setValue("x_232048_jira_inte_jira_issue_key", issue.key.toString() );
+					if ( state != null ) {
+						newStory.setValue("state",state);
+					}
+					newStory.insert();
+					
+				}
+
+			} // new story
+						
+		}
+		catch(ex) {
+			ret = ex.toString();
+			gs.info("Issue Change Error: " + ret );		
+		}
+		
+		return ret;
+		
+	}	
+	
+	// -- process sub-task change --
+	function processSubtask(issue,projectPhaseId) {
+		
+		var ret = "OK";
+		
+		try {
+			
+			// check for parent story
+			var storyId = null;
+			if ( issue.fields.parent != null ) {
+				var story = new GlideRecord('rm_story');
+				story.addQuery("x_232048_jira_inte_jira_issue_key", issue.fields.parent.key );
+				story.setLimit(1);
+				story.query();
+				while(story.next()) {
+					storyId = story.getValue("sys_id");							
+				}
+			}
+			
+			// check for scrum task in system
+			var taskId = null;
+			var state = null;
+			switch (issue.fields.status.name.toString()) {
+				case "To Do" :
+					state = "1";
+					break;
+				case "In Progress" :
+					state = "2";
+					break;
+				case "Done" :
+					state = "3";
+					break;
+			}
+
+			var task = new GlideRecord('rm_scrum_task');
+			task.addQuery("x_232048_jira_inte_jira_task_key", issue.key.toString() );
+			task.setLimit(1);
+			task.query();
+			while(task.next()) {
+
+				// update the task
+				taskId = task.getValue("sys_id");		
+
+				if ( storyId != null ) {
+					task.setValue("story", storyId);
+				}
+				if ( issue.fields.summary != null ) {
+					task.setValue("short_description", issue.fields.summary.toString() );
+				}
+				if ( issue.fields.description != null ) {
+					task.setValue("description", issue.fields.description.toString() );
+				}
+				if ( issue.fields.priority != null ) {
+					if ( issue.fields.priority.id != null ) {
+						task.setValue("priority", issue.fields.priority.id.toString() );
+					}
+				}
+				if ( state != null ) {
+					task.setValue("state",state);
+				}
+
+				task.update();
+			}	
+
+			if (taskId == null) {
+				
+				// check for duplicate task in story
+				var dupTask = false;
+				var checkTask = new GlideRecord('rm_scrum_task');
+				checkTask.addQuery("short_description",issue.fields.summary.toString() );
+				checkTask.addQuery("story", storyId);
+				checkTask.setLimit(1);
+				checkTask.query();			
+				while(checkTask.next()) {
+					dupTask = true;
+				}
+
+				if ( !dupTask ) {
+					
+					// add new scrum task 
+					var newTask = new GlideRecord('rm_scrum_task');
+					if ( storyId != null ) {
+						newTask.setValue("story", storyId);
+					}
+					if ( issue.fields.summary != null ) {
+						newTask.setValue("short_description", issue.fields.summary.toString() );
+					}
+					if ( issue.fields.description != null ) {
+						newTask.setValue("description", issue.fields.description.toString() );
+					}
+					if ( issue.fields.priority != null ) {
+						if ( issue.fields.priority.id != null ) {
+							newTask.setValue("priority", issue.fields.priority.id.toString() );
+						}
+					}
+					newTask.setValue("x_232048_jira_inte_jira_task_key", issue.key.toString() );
+					if ( state != null ) {
+						newTask.setValue("state",state);
+					}
+					newTask.insert();	
+					
+					// set task id
+					taskId = newTask.getValue("sys_id");
+				}
+
+			} // insert task
+						
+		}
+		catch(ex) {
+			ret = ex.toString();
+			gs.info("Task Change Error: " + ret );		
+		}
+		
+		return ret;
+
+	}
+	
+	// -- process worklog entry --
+	function processWorklog(worklog,issue) {
+		
+		if ( worklog == null ) {			
+			// no worklog, return
+			gs.info("No WorkLog");		
+			return;
+		}
+		if ( issue == null ) {
+			// no issue, return
+			gs.info("No Issue");
+		}
+				
+		try {
+			
+			// get duration 
+			var seconds = parseInt(worklog.timeSpentSeconds.toString());
+			var minutes = seconds / 60;
+			var hours = minutes / 60;
+			var duration = '00 00:00:00';
+			if ( hours < 1 ) {
+				// less than an hour use minutes
+				if ( minutes < 10 ) {
+					minutes = '0' + minutes.toString();
+				}				
+				duration = '00 00:' + minutes.toString() + ':00';
+			}
+			else {
+				// unit in hours
+				if ( hours < 10) {
+					hours = '0' + hours.toString();						
+				}	
+				duration = '00 ' + hours.toString() + ':00:00';
+			}
+			
+			// make sure worklog doesn't exist
+			var worklogExists = false;
+			var checkWl = new GlideRecord('task_time_worked');
+			checkWl.addQuery("x_232048_jira_inte_jira_work_id",worklog.id.toString() );
+			checkWl.setLimit(1);
+			checkWl.query();			
+			while(checkWl.next()) {
+				
+				// worklog exists so dont insert new
+				worklogExists = true;
+				
+				// edit existing worklog
+				checkWl.setValue("comments",worklog.comment.toString());
+				checkWl.setValue("time_worked", duration);
+				checkWl.update();				
+				
+			}			
+
+			if ( !worklogExists) {
+				
+				// get task id for story/scrum task
+				var taskId = null;
+				if ( issue.fields.issuetype.name.toString() == "Story") {
+				
+					// story
+					var storyLookup = new GlideRecord('rm_story');
+					storyLookup.addQuery("x_232048_jira_inte_jira_issue_key",issue.key);
+					storyLookup.setLimit(1);
+					storyLookup.query();
+					while ( storyLookup.next() ) {
+						taskId = storyLookup.getValue("sys_id");
+					}					
+				}
+				else {
+					
+					// sub task
+					var taskLookup = new GlideRecord("rm_scrum_task");
+					taskLookup.addQuery("x_232048_jira_inte_jira_task_key", issue.key);
+					taskLookup.setLimit(1);
+					taskLookup.query();
+					while ( taskLookup.next() ) {
+						taskId = taskLookup.getValue("sys_id");
+					}
+				}
+				
+				if ( taskId != null ) {					
+					
+					// add worklog to db
+					var newWl = new GlideRecord('task_time_worked');
+					newWl.setValue("task",taskId);
+					newWl.setValue("x_232048_jira_inte_jira_work_id",worklog.id.toString());
+					newWl.setValue("comments",worklog.comment.toString());
+					newWl.setValue("time_worked", duration);
+					newWl.insert();
+					
+				}
+				else {
+					gs.info("Task ID not found for insert...");
+				}
+				
+			} // work log doesnt exist
+			
+		}
+		catch(ex) {
+			ret = ex.toString();
+			gs.info("Worklog Processing Error: " + ret );		
+		}
+		
+	}
+	
+	// return result to JIRA
+	var resultObj = {};
+	resultObj.success = res == "OK" ? true : false;
+	resultObj.message = res;
+	
+    return resultObj;	
+	
+})(request, response);]]></operation_script>
+        <operation_uri>/api/x_232048_jira_inte/jira_integration/issue</operation_uri>
+        <produces>application/json,application/xml,text/xml</produces>
+        <produces_customized>false</produces_customized>
+        <relative_path>/issue</relative_path>
+        <request_example/>
+        <requires_acl_authorization>false</requires_acl_authorization>
+        <requires_authentication>false</requires_authentication>
+        <short_description/>
+        <sys_class_name>sys_ws_operation</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2018-07-06 15:48:37</sys_created_on>
+        <sys_id>aed99187db031300996485184b961900</sys_id>
+        <sys_mod_count>52</sys_mod_count>
+        <sys_name>Issue Change</sys_name>
+        <sys_package display_value="JIRA Integration" source="x_232048_jira_inte">4b8f5740db031300996485184b96199e</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="JIRA Integration">4b8f5740db031300996485184b96199e</sys_scope>
+        <sys_update_name>sys_ws_operation_aed99187db031300996485184b961900</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2018-07-12 19:43:07</sys_updated_on>
+        <web_service_definition display_value="JIRA Integration">3399d187db031300996485184b961945</web_service_definition>
+        <web_service_version/>
+    </sys_ws_operation>
+</record_update>

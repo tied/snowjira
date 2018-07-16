@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <element attributes="ignore_delete_children=true" audit="true" extends="rm_task" label="Scrum task" max_length="40" name="rm_scrum_task" sizeclass="109" type="collection">
+        <element label="Jira Task Key" max_length="100" name="x_232048_jira_inte_jira_task_key" type="string_full_utf8"/>
+    </element>
+</database>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <element label="Time Worked" max_length="40" name="task_time_worked" type="collection">
+        <element label="JIRA Work ID" max_length="200" name="x_232048_jira_inte_jira_work_id" type="string_full_utf8"/>
+    </element>
+</database>

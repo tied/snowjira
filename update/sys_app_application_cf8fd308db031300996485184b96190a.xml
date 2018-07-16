@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update sys_domain="global" table="sys_app_application">
+    <sys_app_application action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <category display_value="Administration">647e6524c0a80a080010856a87e15ce2</category>
+        <description>Configure JIRA Cloud server to integrate with</description>
+        <device_type>browser</device_type>
+        <hint>JIRA Integration</hint>
+        <name>JIRA Integration</name>
+        <order/>
+        <roles>x_232048_jira_inte.user</roles>
+        <sys_class_name>sys_app_application</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2018-06-27 17:50:04</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>cf8fd308db031300996485184b96190a</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>JIRA Integration</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="JIRA Integration" source="x_232048_jira_inte">4b8f5740db031300996485184b96199e</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="JIRA Integration">4b8f5740db031300996485184b96199e</sys_scope>
+        <sys_update_name>sys_app_application_cf8fd308db031300996485184b96190a</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2018-06-27 18:00:52</sys_updated_on>
+        <title>JIRA Integration</title>
+        <view_name/>
+    </sys_app_application>
+</record_update>

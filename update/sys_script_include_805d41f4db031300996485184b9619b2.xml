@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_232048_jira_inte.GetJIRAProjects</api_name>
+        <client_callable>true</client_callable>
+        <description>return list of JIRA Projects to the UI</description>
+        <name>GetJIRAProjects</name>
+        <script><![CDATA[var GetJIRAProjects = Class.create();
+GetJIRAProjects.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+
+	getProjects: function() {
+		
+		// jira credentials
+		var jiraUrl = "";
+		var jiraUser = "";
+		var jiraPassword = "";
+		
+		// get jira settings from db
+		var settings = new GlideRecord('x_232048_jira_inte_jira_settings');
+		settings.setLimit(1);
+		settings.query();
+		while(settings.next()) {
+			jiraUrl = settings.getDisplayValue('jira_url');
+			jiraUser = settings.getDisplayValue('jira_user');
+			jiraPassword = settings.getElement("jira_password").getDecryptedValue();		
+		}
+		
+		var wsUrl = jiraUrl + "/rest/api/2/project";			
+		var requestBody;
+		var responseBody;
+		var status;
+		var sm;
+		
+		try {
+	
+			sm = new sn_ws.RESTMessageV2(); 
+			sm.setHttpMethod("get");
+			sm.setEndpoint(wsUrl);			
+			sm.setBasicAuth(jiraUser,jiraPassword);
+			sm.setRequestHeader('Content-Type','application/json');
+			sm.setRequestHeader('Accept','application/json');
+			sm.setHttpTimeout(10000); 
+
+			response = sm.execute();
+
+			responseBody = response.haveError() ? response.getErrorMessage() :response.getBody();
+			status = response.getStatusCode();
+
+		} catch(ex) {
+			responseBody = ex.getMessage();
+			status = '500';
+		} finally {
+			requestBody = sm ? sm.getRequestBody():null;
+		}
+			
+		// list of projects
+		var projects = [];
+		if ( status != '500') {
+			try {
+				var projectList = JSON.parse(responseBody);
+				for( var i=0 ; i < projectList.length ; i++) { 
+					var project = {};
+					project.text = projectList[i].name;
+					project.value = projectList[i].key;						
+					projects.push(project);
+				}
+			}
+			catch(ex) {
+				var fail = {};
+				fail.text = ex;
+				fail.value = "-1";
+				projects.push(fail);
+			}
+		}
+		else {
+			var fail = {};
+			fail.text = "Failed getting Projects";
+			fail.value = "-1";
+			projects.push(fail);
+		}
+		
+		var data = JSON.stringify(projects);
+		return data;
+	},
+
+	type: 'GetJIRAProjects'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2018-06-29 15:15:59</sys_created_on>
+        <sys_id>805d41f4db031300996485184b9619b2</sys_id>
+        <sys_mod_count>26</sys_mod_count>
+        <sys_name>GetJIRAProjects</sys_name>
+        <sys_package display_value="JIRA Integration" source="x_232048_jira_inte">4b8f5740db031300996485184b96199e</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="JIRA Integration">4b8f5740db031300996485184b96199e</sys_scope>
+        <sys_update_name>sys_script_include_805d41f4db031300996485184b9619b2</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2018-06-29 22:16:49</sys_updated_on>
+    </sys_script_include>
+</record_update>

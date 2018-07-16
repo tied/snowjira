@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_app">
+    <sys_app action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <enforce_license>none</enforce_license>
+        <js_level>helsinki_es5</js_level>
+        <licensable>true</licensable>
+        <license_model>none</license_model>
+        <logo/>
+        <menu display_value="JIRA Integration">cf8fd308db031300996485184b96190a</menu>
+        <name>JIRA Integration</name>
+        <private>false</private>
+        <restrict_table_access>false</restrict_table_access>
+        <runtime_access_tracking>permissive</runtime_access_tracking>
+        <scope>x_232048_jira_inte</scope>
+        <scoped_administration>false</scoped_administration>
+        <short_description/>
+        <source>x_232048_jira_inte</source>
+        <store_correlation_id/>
+        <store_url/>
+        <sys_class_name>sys_app</sys_class_name>
+        <sys_code/>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2018-06-27 17:50:04</sys_created_on>
+        <sys_id>4b8f5740db031300996485184b96199e</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2018-06-27 17:50:04</sys_updated_on>
+        <template/>
+        <trackable>true</trackable>
+        <user_role display_value="x_232048_jira_inte.user" name="x_232048_jira_inte.user">0f8fd308db031300996485184b96190d</user_role>
+        <vendor/>
+        <vendor_prefix/>
+        <version>1.0.0</version>
+    </sys_app>
+</record_update>

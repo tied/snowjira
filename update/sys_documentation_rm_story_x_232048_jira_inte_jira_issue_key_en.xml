@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update>
+    <sys_documentation element="x_232048_jira_inte_jira_issue_key" label="Jira Issue Key" language="en" table="rm_story">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>x_232048_jira_inte_jira_issue_key</element>
+            <help/>
+            <hint/>
+            <label>Jira Issue Key</label>
+            <language>en</language>
+            <name>rm_story</name>
+            <plural>Jira Issue Keys</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2018-07-02 18:14:38</sys_created_on>
+            <sys_id>cc259db9db431300996485184b96199b</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Jira Issue Key</sys_name>
+            <sys_package display_value="JIRA Integration" source="x_232048_jira_inte">4b8f5740db031300996485184b96199e</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="JIRA Integration">4b8f5740db031300996485184b96199e</sys_scope>
+            <sys_update_name>sys_documentation_rm_story_x_232048_jira_inte_jira_issue_key_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2018-07-02 18:14:38</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>rm_scrum_task</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>Scrum Task Update</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+
+	// get jira issue key
+	var jiraissuekey = current.x_232048_jira_inte_jira_task_key.toString();
+	
+	if ( jiraissuekey == null ) {
+		// not a jira task no integration needed
+		return;
+	}
+	
+	var jiraStoryKey = null;
+	var projectPhase = null;
+	var story = new GlideRecord('rm_story');
+	story.addQuery("sys_id", current.story.toString() );
+	story.setLimit(1);
+	story.query();
+	while(story.next()) {
+		jiraStoryKey = story.getValue("x_232048_jira_inte_jira_issue_key");			
+		projectPhase = story.getValue("project_phase");
+	}	
+	if ( jiraStoryKey == null ) {
+		// task not related to jira story, no integration needed
+		gs.info("JIRA Story Key Not Found!");
+		return;
+	}
+	if ( projectPhase == null ) {
+		// couldnt get project
+		gs.info("JIRA Project Phase Found!");
+	}	
+		
+	// get project phase from db
+	var phase = null;
+	var project_phase = new GlideRecord('pm_project_task');
+	project_phase.addQuery("sys_id", projectPhase);
+	project_phase.setLimit(1);
+	project_phase.query();
+	while(project_phase.next()) {
+		phase = project_phase.getValue("x_232048_jira_inte_jira_project");				
+	}	
+	if ( phase == null ) {
+		// no JIRA project selected, no integration required
+		gs.info("No JIRA Project for Phase!");
+		return;
+	}
+		
+	// jira push objects
+	var requestObj = {};
+	var fieldsObj = {};
+	var projectObj = {};
+	var parentObj = {};
+	var issueTypeObj = {};
+	var priorityObj = {};
+	
+	projectObj.key = phase;
+	parentObj.key = jiraStoryKey;
+	issueTypeObj.name = "Sub-task";	
+	priorityObj.id = current.priority.toString();
+			
+	fieldsObj.project = projectObj;
+	fieldsObj.parent = parentObj;
+	fieldsObj.issuetype = issueTypeObj;	
+	fieldsObj.priority = priorityObj;
+	fieldsObj.summary = current.short_description.toString(); 
+	fieldsObj.description = current.description.toString();  			
+			
+	requestObj.fields = fieldsObj;
+	
+	var requestBody = JSON.stringify(requestObj);
+				
+	// jira credentials
+	var jiraUrl = "";
+	var jiraUser = "";
+	var jiraPassword = "";
+
+	// get jira settings from db
+	var settings = new GlideRecord('x_232048_jira_inte_jira_settings');
+	settings.setLimit(1);
+	settings.query();
+	while(settings.next()) {
+		jiraUrl = settings.getDisplayValue('jira_url');
+		jiraUser = settings.getDisplayValue('jira_user');
+		jiraPassword = settings.getElement("jira_password").getDecryptedValue();	
+	}
+
+	var wsUrl = jiraUrl + "/rest/api/2/issue/" + jiraissuekey;			
+	
+	var responseBody;
+	var status;
+	var sm;
+
+	try {
+
+		sm = new sn_ws.RESTMessageV2(); 
+		sm.setHttpMethod("put");
+		sm.setEndpoint(wsUrl);			
+		sm.setBasicAuth(jiraUser,jiraPassword);
+		sm.setRequestHeader('Content-Type','application/json');
+		sm.setRequestHeader('Accept','application/json');
+		sm.setRequestBody(requestBody);
+		sm.setHttpTimeout(10000); 
+		
+		response = sm.execute();		
+		
+		responseBody = response.haveError() ? response.getErrorMessage() : response.getBody();
+		status = response.getStatusCode();
+		
+		// get issue key
+		var result = JSON.parse(responseBody);
+						
+		// get list of transitions available to issue
+		sm = new sn_ws.RESTMessageV2();
+		sm.setHttpMethod("get");
+		sm.setEndpoint(wsUrl + "/transitions");
+		sm.setBasicAuth(jiraUser,jiraPassword);
+		sm.setRequestHeader('Content-Type','application/json');
+		sm.setRequestHeader('Accept','application/json');
+		sm.setHttpTimeout(10000); 
+		
+		response = sm.execute();		
+		
+		responseBody = response.haveError() ? response.getErrorMessage() : response.getBody();
+		status = response.getStatusCode();
+		
+		var transitionsObj = JSON.parse(responseBody);
+		var transitions = transitionsObj.transitions;	
+		
+		// make transition request object
+		var tRequestBody = null;
+		var tRequestObj = {};	
+		var transitionObj = null;
+		for (var x=0; x<transitions.length; x++) {
+			if ( (transitions[x].name.toString() == "To Do") && (current.state.toString() == "1") ) {
+				transitionObj = {};
+				transitionObj.id = transitions[x].id.toString();
+				break;
+			}
+			else if ( (transitions[x].name.toString() == "In Progress") && (current.state.toString() == "2") ) {
+				transitionObj = {};
+				transitionObj.id = transitions[x].id.toString();
+				break;
+			}
+			else if ( (transitions[x].name.toString() == "Done") && (current.state.toString() == "3") ) {
+				transitionObj = {};
+				transitionObj.id = transitions[x].id.toString();
+				break;
+			}			
+		}
+		
+		if (transitionObj != null) {
+			
+			// found mapped transition, go ahead and make JIRA transition
+			tRequestObj.transition = transitionObj;
+			tRequestBody = JSON.stringify(tRequestObj);
+
+			// transition to updated status
+			sm = new sn_ws.RESTMessageV2();
+			sm.setHttpMethod("post");
+			sm.setEndpoint(wsUrl + "/transitions");
+			sm.setBasicAuth(jiraUser,jiraPassword);
+			sm.setRequestHeader('Content-Type','application/json');
+			sm.setRequestHeader('Accept','application/json');
+			sm.setRequestBody(tRequestBody);
+			sm.setHttpTimeout(10000); 
+
+			response = sm.execute();
+			
+			responseBody = response.haveError() ? response.getErrorMessage() : response.getBody();
+			status = response.getStatusCode();
+
+		}
+		
+	} catch(ex) {
+		responseBody = ex.toString();
+		status = '500';
+		
+		gs.info("Edit JIRA Sub-task Error: " + responseBody );
+		
+	} finally {
+		requestBody = sm ? sm.getRequestBody():null;
+	}
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2018-07-05 22:40:17</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>7a79a1bedbc31300996485184b961946</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Scrum Task Update</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="JIRA Integration" source="x_232048_jira_inte">4b8f5740db031300996485184b96199e</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="JIRA Integration">4b8f5740db031300996485184b96199e</sys_scope>
+        <sys_update_name>sys_script_7a79a1bedbc31300996485184b961946</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2018-07-05 22:40:17</sys_updated_on>
+        <template/>
+        <when>async</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=7a79a1bedbc31300996485184b961946"/>
+</record_update>

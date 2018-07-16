@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update sys_domain="global" table="sys_script_client">
+    <sys_script_client action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <applies_extended>false</applies_extended>
+        <condition/>
+        <description>Fetch the Projects from JIRA API using the settings defined in JIRA settings in SNOW</description>
+        <field>active</field>
+        <global>true</global>
+        <messages/>
+        <name>Populate JIRA Projects</name>
+        <order/>
+        <script><![CDATA[function onLoad() {
+	var ga = new GlideAjax('GetJIRAProjects');
+	ga.addParam('sysparm_name', 'getProjects');
+	ga.getXML(populateProjects);
+}
+
+// populate dropdown with jira projects
+function populateProjects(response) {
+		
+	var answer = response.responseXML.documentElement.getAttribute("answer");
+	var projects = JSON.parse(answer); //Transform the JSON string to an object
+			
+	// add jira projects to dropdown choices
+	for( var i=0 ; i < projects.length ; i++) { 
+		g_form.addOption("x_232048_jira_inte_jira_project",projects[i].value,projects[i].text);
+	}
+	
+}]]></script>
+        <sys_class_name>sys_script_client</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2018-06-28 22:43:17</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>a1cbe160dbc31300996485184b961975</sys_id>
+        <sys_mod_count>28</sys_mod_count>
+        <sys_name>Populate JIRA Projects</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="JIRA Integration" source="x_232048_jira_inte">4b8f5740db031300996485184b96199e</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="JIRA Integration">4b8f5740db031300996485184b96199e</sys_scope>
+        <sys_update_name>sys_script_client_a1cbe160dbc31300996485184b961975</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2018-06-29 22:18:10</sys_updated_on>
+        <table>pm_project_task</table>
+        <type>onLoad</type>
+        <ui_type>0</ui_type>
+        <view/>
+    </sys_script_client>
+</record_update>

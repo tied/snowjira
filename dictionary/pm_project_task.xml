@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <element audit="true" extends="planned_task" label="Project Task" max_length="40" name="pm_project_task" sizeclass="3319" type="collection">
+        <element choice="1" choice_field="access" label="JIRA Project" max_length="200" name="x_232048_jira_inte_jira_project" type="string_full_utf8">
+            <choice/>
+        </element>
+    </element>
+</database>
